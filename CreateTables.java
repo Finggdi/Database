@@ -1,32 +1,26 @@
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
 
-public class test3 {
+public class CreateTables {
 
     public static void main(String[] args) {
         Connection conn = null;
         Statement stmt = null;
 
         try {
-            // 載入 MariaDB 驅動
-            String driver = "org.mariadb.jdbc.Driver";
-            String url = "jdbc:mariadb://0.tcp.jp.ngrok.io:11051/411177012";
-            String user = "411177012";
-            String password = "411177012";
-            Class.forName(driver);
-            // 建立連接
-            Connection connection = DriverManager.getConnection(url, user, password);
+            // 連接到資料庫
+            Connection connection = DatabaseConnection.getConnection();
             System.out.println("成功連接資料庫！");
             stmt = connection.createStatement();
 
+            // 創建資料庫和表
             String sql;
 
-            // 創建資料庫和表
             sql = "CREATE DATABASE IF NOT EXISTS car_sales";
-            //stmt.executeUpdate(sql);
             System.out.println("資料庫創建成功...");
             
-            //stmt.executeUpdate("USE car_sales");
-
             sql = "CREATE TABLE IF NOT EXISTS 客戶 ("
                     + "客戶ID INT PRIMARY KEY,"
                     + "客戶名稱 VARCHAR(100),"
@@ -136,28 +130,12 @@ public class test3 {
 
             // 插入範例數據
             insertSampleData(stmt);
-            
-            
-
-            // 執行查詢並打印結果
-            findDefectiveTransmissions(stmt);
-            findTopDealerBySales(stmt);
-            findTopBrandsByUnitSales(stmt);
-            findBestMonthForSUVs(stmt);
-            findDealersWithLongestInventoryTime(stmt);
-            showTableCounts(stmt);
-            
 
         } catch (SQLException se) {
-            // 處理 JDBC 錯誤
             se.printStackTrace();
-        } catch (Exception e) {
-            // 處理 Class.forName 錯誤
-            e.printStackTrace();
         } finally {
             try {
                 if (stmt != null) stmt.close();
-                if (conn != null) conn.close();
             } catch (SQLException se) {
                 se.printStackTrace();
             }
@@ -214,114 +192,5 @@ public class test3 {
         stmt.executeUpdate(sql);
         sql = "INSERT INTO 車輛 VALUES ('5UXWX7C5XL0S84675', 2, 3, 2, 2, 1200000, '2023-12-20')";
         stmt.executeUpdate(sql);
-    }
-
-    private static void showTableCounts(Statement stmt) throws SQLException {
-        String query = "SELECT '客戶' AS 表名, COUNT(*) AS 資料量 FROM 客戶 "
-                + "UNION ALL SELECT '經銷商', COUNT(*) FROM 經銷商 "
-                + "UNION ALL SELECT '品牌', COUNT(*) FROM 品牌 "
-                + "UNION ALL SELECT '配置', COUNT(*) FROM 配置 "
-                + "UNION ALL SELECT '供應商', COUNT(*) FROM 供應商 "
-                + "UNION ALL SELECT '工廠', COUNT(*) FROM 工廠 "
-                + "UNION ALL SELECT '車型', COUNT(*) FROM 車型 "
-                + "UNION ALL SELECT '車輛', COUNT(*) FROM 車輛";
-
-        ResultSet rs = stmt.executeQuery(query);
-        while (rs.next()) {
-            System.out.println(rs.getString("表名") + " 表的資料量: " + rs.getInt("資料量"));
-        }
-    }
-
-    private static void findDefectiveTransmissions(Statement stmt) throws SQLException {
-        String query = "SELECT v.VIN, c.客戶名稱 "
-                + "FROM 車輛 v "
-                + "JOIN 配置 cfg ON v.配置ID = cfg.配置ID "
-                + "JOIN 供應商 s ON cfg.供應商ID = s.供應商ID "
-                + "JOIN 工廠 f ON s.供應商ID = f.供應商ID "
-                + "JOIN 客戶 c ON v.客戶ID = c.客戶ID "
-                + "WHERE s.供應商名稱 = 'Getrag' "
-                + "AND cfg.生產日期 BETWEEN '2023-01-01' AND '2023-12-31' "
-                + "AND f.工廠名稱 = 'Getrag Plant 1'";
-
-        ResultSet rs = stmt.executeQuery(query);
-        boolean hasResults = false;
-        while (rs.next()) {
-            hasResults = true;
-            System.out.println("VIN: " + rs.getString("VIN") + ", 客戶: " + rs.getString("客戶名稱"));
-        }
-        if (!hasResults) {
-            System.out.println("沒有找到符合條件的車輛和客戶。");
-        }
-    }
-
-    private static void findTopDealerBySales(Statement stmt) throws SQLException {
-        String query = "SELECT d.經銷商名稱, SUM(v.售價) as 總銷售額 "
-                + "FROM 車輛 v "
-                + "JOIN 品牌 b ON v.品牌ID = b.品牌ID "
-                + "JOIN 經銷商 d ON b.經銷商ID = d.經銷商ID "
-                + "WHERE v.銷售日期 >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR) "
-                + "GROUP BY d.經銷商ID "
-                + "ORDER BY 總銷售額 DESC LIMIT 1";
-
-        ResultSet rs = stmt.executeQuery(query);
-        if (rs.next()) {
-            System.out.println("銷售額最高的經銷商: " + rs.getString("經銷商名稱") + ", 總銷售額: " + rs.getDouble("總銷售額"));
-        } else {
-            System.out.println("沒有找到符合條件的經銷商。");
-        }
-    }
-
-    private static void findTopBrandsByUnitSales(Statement stmt) throws SQLException {
-        String query = "SELECT b.品牌名稱, COUNT(*) as 銷售量 "
-                + "FROM 車輛 v "
-                + "JOIN 品牌 b ON v.品牌ID = b.品牌ID "
-                + "WHERE v.銷售日期 >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR) "
-                + "GROUP BY b.品牌ID "
-                + "ORDER BY 銷售量 DESC LIMIT 2";
-
-        ResultSet rs = stmt.executeQuery(query);
-        boolean hasResults = false;
-        while (rs.next()) {
-            hasResults = true;
-            System.out.println("品牌: " + rs.getString("品牌名稱") + ", 銷售量: " + rs.getInt("銷售量"));
-        }
-        if (!hasResults) {
-            System.out.println("沒有找到符合條件的品牌。");
-        }
-    }
-
-    private static void findBestMonthForSUVs(Statement stmt) throws SQLException {
-        String query = "SELECT MONTH(v.銷售日期) as 月份, COUNT(*) as 銷售量 "
-                + "FROM 車輛 v "
-                + "JOIN 車型 m ON v.車型ID = m.車型ID "
-                + "WHERE m.車輛型式 = 'SUV' "
-                + "GROUP BY 月份 "
-                + "ORDER BY 銷售量 DESC LIMIT 1";
-
-        ResultSet rs = stmt.executeQuery(query);
-        if (rs.next()) {
-            System.out.println("SUV 銷量最好的月份: " + rs.getInt("月份") + "月, 銷售量: " + rs.getInt("銷售量"));
-        } else {
-            System.out.println("沒有找到符合條件的月份。");
-        }
-    }
-
-    private static void findDealersWithLongestInventoryTime(Statement stmt) throws SQLException {
-        String query = "SELECT d.經銷商名稱, AVG(DATEDIFF(v.銷售日期, d.庫存日期)) as 平均庫存天數 "
-                + "FROM 車輛 v "
-                + "JOIN 品牌 b ON v.品牌ID = b.品牌ID "
-                + "JOIN 經銷商 d ON b.經銷商ID = d.經銷商ID "
-                + "GROUP BY d.經銷商ID "
-                + "ORDER BY 平均庫存天數 DESC";
-
-        ResultSet rs = stmt.executeQuery(query);
-        boolean hasResults = false;
-        while (rs.next()) {
-            hasResults = true;
-            System.out.println("經銷商: " + rs.getString("經銷商名稱") + ", 平均庫存天數: " + rs.getInt("平均庫存天數"));
-        }
-        if (!hasResults) {
-            System.out.println("沒有找到符合條件的經銷商。");
-        }
     }
 }
