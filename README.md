@@ -76,10 +76,10 @@ src/
 車型 (CarModel)
 車輛 (Vehicle)
 
-6.示例 SQL 查詢
+範例SQL 查詢
 以下是一些示例 SQL 查詢，展示如何從資料庫中搜索特定信息
 
-查詢 1：找SUV 銷量最好的月份:
+查詢 =1：找SUV 銷量最好的月份:
 
 "SELECT MONTH(v.銷售日期) as 月份, COUNT(*) as 銷售量 "
 + "FROM 車輛 v "
@@ -88,7 +88,7 @@ src/
 + "GROUP BY 月份 "
 + "ORDER BY 銷售量 DESC LIMIT 1";
 
-查詢 2：查找銷售額最高的經銷商
+查詢 =2：查找銷售額最高的經銷商
 
 "SELECT d.經銷商名稱, SUM(v.售價) as 總銷售額 "
 + "FROM 車輛 v "
