@@ -1,20 +1,20 @@
 
-這個項目Car Sales Management System是一個基於 Java 並使用 Swing 的 GUI 的汽車銷售管理系統。
-該系統可以讓用戶與汽車銷售資料庫進行互動，執行各種SQL查詢，並查看結果
+這個項目Car Sales Management System是一個基於 Java 並使用 Swing 的 GUI 的汽車銷售管理系統。  
+該系統可以讓用戶與汽車銷售資料庫進行互動，執行各種SQL查詢，並查看結果  
 
-目錄
-前置需求
-安裝
-使用
-項目結構
-資料庫結構
-範例SQL查詢
+目錄  
+前置需求  
+安裝  
+使用  
+項目結構  
+資料庫結構  
+範例SQL查詢  
 
 
-前置需求
-在開始使用本項目之前，請確保你已經安裝了以下軟體：
-Java Development Kit (JDK) 8或更高版本
-MariaDB
+前置需求  
+在開始使用本項目之前，請確保你已經安裝了以下軟體：  
+Java Development Kit (JDK) 8或更高版本  
+MariaDB  
 
 安裝
 請按照以下步驟設置並運作：
